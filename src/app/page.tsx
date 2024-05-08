@@ -3,10 +3,12 @@ import { Shell } from "@/components/shell";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { AboutMe } from "./_components/about-me";
-import { experience, projects, siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
 import { ExperienceTimeline } from "./_components/experience-timeline";
 import { Separator } from "@/components/ui/separator";
+import { projects } from "@/config/projects";
+import { experience } from "@/config/experience";
 
 export default function Home() {
   return (
