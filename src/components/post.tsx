@@ -5,7 +5,7 @@ export function Post({ slug, metadata }: Post) {
   return (
     <Link href={`/blog/${slug}`}>
       <div className="flex flex-col space-y-2">
-        <span>{metadata.title}</span>
+        <span className="font-semibold text-sm">{metadata.title}</span>
         <span className="text-muted-foreground text-xs">
           {metadata.summary}
         </span>

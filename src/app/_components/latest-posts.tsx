@@ -7,10 +7,10 @@ export function LatestPosts() {
   const blogs = getBlogPosts();
 
   return (
-    <React.Fragment>
+    <section className="space-y-2">
       {blogs.slice(0, 5).map((post) => (
         <Post {...post} key={post.slug} />
       ))}
-    </React.Fragment>
+    </section>
   );
 }
