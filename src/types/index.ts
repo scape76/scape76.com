@@ -13,3 +13,17 @@ export type Experience = {
   startDate: string;
   endDate?: string;
 };
+
+export type PostMetadata = {
+  title: string;
+  publishedAt: string;
+  summary: string;
+  image?: string;
+};
+
+export type Post = {
+  metadata: PostMetadata;
+  slug: string;
+  tweetIds: any;
+  content: string;
+};

@@ -1,14 +1,12 @@
-import { LinkBadge } from "@/components/link-badge";
 import { Shell } from "@/components/shell";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { AboutMe } from "./_components/about-me";
 import { siteConfig } from "@/config/site";
 import { cn } from "@/lib/utils";
-import { ExperienceTimeline } from "./_components/experience-timeline";
 import { Separator } from "@/components/ui/separator";
 import { projects } from "@/config/projects";
-import { experience } from "@/config/experience";
+import { LatestPosts } from "./_components/latest-posts";
 
 export default function Home() {
   return (
@@ -49,8 +47,7 @@ export default function Home() {
           ))}
         </ul>
       </section>
-      <Separator />
-      <section className="space-y-4">
+      {/* <section className="space-y-4">
         <h2 className="prose prose-zinc text-xl font-semibold dark:prose-invert tracking-tighter">
           My work experience
         </h2>
@@ -61,7 +58,7 @@ export default function Home() {
             ))}
           </ul>
         </div>
-      </section>
+      </section> */}
       <Separator />
       <section className="space-y-4">
         <h2 className="prose prose-zinc text-xl font-semibold dark:prose-invert tracking-tighter">
@@ -74,8 +71,7 @@ export default function Home() {
           </Link>
         </h2>
         <div className="flex flex-col space-y-6">
-          {/* <Posts /> */}
-          ...
+          <LatestPosts />
         </div>
       </section>
     </Shell>

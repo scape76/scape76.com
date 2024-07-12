@@ -2,9 +2,16 @@ import * as React from "react";
 import { type Metadata } from "next";
 import { env } from "@/env";
 
-import { PageHeaderHeading } from "@/components/page-header";
+import {
+  PageHeader,
+  PageHeaderDescription,
+  PageHeaderHeading,
+} from "@/components/page-header";
 // import { Posts } from "@/components/posts";
 import { Shell } from "@/components/shell";
+import { getBlogPosts } from "@/db/blog";
+import Link from "next/link";
+import { Post } from "@/components/post";
 // import { PostCardSkeleton } from "@/components/skeletons/post-card-skeleton";
 
 export const metadata: Metadata = {
@@ -13,19 +20,19 @@ export const metadata: Metadata = {
   description: "My blog posts",
 };
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const blogs = getBlogPosts();
+
   return (
     <Shell variant="markdown">
-      <PageHeaderHeading size="sm">Blog</PageHeaderHeading>
+      <PageHeader>
+        <PageHeaderHeading size="sm">Personal Blog</PageHeaderHeading>
+        <PageHeaderDescription>Just sharing my thoughts.</PageHeaderDescription>
+      </PageHeader>
       <section className="flex flex-col space-y-6">
-        {/* <React.Suspense
-          fallback={Array.from({ length: 3 }).map((_, i) => (
-            <PostCardSkeleton key={i} />
-          ))}
-        >
-          <Posts />
-        </React.Suspense> */}
-        ...
+        {blogs.map((post) => (
+          <Post {...post} key={post.slug} />
+        ))}
       </section>
     </Shell>
   );

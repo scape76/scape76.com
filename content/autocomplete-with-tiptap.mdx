@@ -1,0 +1,367 @@
+---
+title: "Implementing an autocomplete extension for tiptap"
+publishedAt: "2024-07-12"
+summary: "In this blog, I will go through the steps of implemeting an autocomplete extension for tiptap editor."
+---
+
+While working on my side project, [sharerecipe](https://sharerecipe.scape76.com) app, I've stumbled upon an idea of making
+an autocompletion feature for a WSYIWYG editor
+
+Here is a basic example of what you can make with this:
+
+<Image
+  alt="emoji autcomplete example"
+  src={"/images/autocomplete-with-tiptap/autocomplete-example.gif"}
+  unoptimized
+  width={300}
+  height={300}
+  className="!mx-auto"
+/>
+
+And yes, I am aware of already existing extensions like [@tiptap/mention](https://tiptap.dev/docs/editor/extensions/nodes/mention) or [@tiptap/emoji](https://tiptap.dev/docs/editor/extensions/nodes/emoji). My own example, is sort of a generalization of those two.
+It doesn't necessarily mean that autocompletion will only work with emojis. You are free to apply your custom logic
+and dictionary.
+
+[Source code](https://github.com/scape76/editor)
+
+[Sandbox](https://editor.scape76.com)
+
+## Prerequisites
+
+Before reading this post, it would be nice if you had a basic understanding of what prosemirror is a and [how it works](https://prosemirror.net/docs/guide/).
+Nevertheless, I will still do my best to be very clear throughout this tutorial.
+
+## Basic idea
+
+Lets break the implementation into 3 main parts:
+
+1. Showing the options menu (what should trigger it?)
+2. Based on current input, apply filtering on available data & show the results
+3. On select, replace the input with corresponding options value
+
+We will go though the implementation parts with an example from the gif above
+
+## Showing the options menu
+
+The trick for this part is to use an already implemented [bubble-menu](https://tiptap.dev/docs/editor/extensions/functionality/bubble-menu) extension.
+We want our list to show up right below the user cursor as he types.
+
+Let's create an autocomplete bubble menu component for that:
+
+<small>autocomplete-bubble-menu.tsx</small>
+```tsx
+export function AutocompleteBubbleMenu() {
+  const { editor } = useCurrentEditor();
+
+  return (
+    <BubbleMenu
+      editor={editor}
+      tippyOptions={{ placement: "bottom-start" }}
+      shouldShow={({ editor }) => {
+        return isAutocompleteActive(editor.view.state);
+      }}
+    ></BubbleMenu>
+  ); 
+}
+
+````
+
+Now, let's think about **when** do we want the menu to show up? In our example, we want it to be visible when the user is typing someting
+**right after the semicolon**. In the code sample above, you can see that I've already called a function and passed current view state to it.
+
+Prosemirror view state is also in charge of keeping the information about where our cursor is within the editor at a current time.
+We can **get this information** and **determine** wether we are right after the semicolon:
+
+<small>helpers.ts</small>
+```ts
+export function isAutocompleteActive(state: EditorState) {
+  const pos = state.doc.resolve(state.selection.anchor);
+
+  const parentText = pos.parent.textContent;
+  const parentOffset = pos.parentOffset;
+
+  let currentIdx = parentOffset - 1;
+
+  while (currentIdx >= 0) {
+    if (parentText[currentIdx] === " ") return false;
+    if (parentText[currentIdx] === ":") return true;
+    currentIdx--;
+  }
+
+  return false;
+}
+````
+
+By passing the anchor to state.doc.resolve function we can get pretty much anything we need to know about cursor position.
+With this, we can get the parents node text and current offset. We will go backwards from current character (which is before the cursor) till the end of the text,
+as soon as we are at the semicolon we return true (we have to show autocomplete), if we are at the whitespace character or at the end of the text, return false
+
+## Applying filtering & showing the results
+
+We already finished with the logic of showing the menu. On this step,
+the hardest part would be to get the users input. Since we already know about
+prosemirror view state, similarly, we can utilize it to get the current input
+
+<small>autocomplete-bubble-menu.tsx</small>
+```tsx
+export function AutocompleteBubbleMenu() {
+  const [input, setInput] = React.useState("");
+  const [show, setShow] = React.useState(false);
+  const [currentBounds, setCurrentBounds] = React.useState(null);
+
+  const { editor } = useCurrentEditor();
+
+  React.useEffect(() => {
+    const { doc } = editor.view.state;
+    const pos = doc.resolve(editor.state.selection.anchor);
+
+    const nodeText = pos.parent.textContent;
+    const offset = pos.parentOffset;
+
+    const shouldShow = isAutocompleteActive(editor.view.state);
+
+    if (shouldShow) {
+        const { start, end } = getInputBounds(nodeText, offset);
+        const input = nodeText.slice(start + 1, end);
+        setCurrentBounds(getResolvedInputBounds(nodeText, offset, pos.pos));
+        setInput(input);
+        setShow(true);
+    } else {
+        setCurrentBounds(null);
+        setShow(false);
+    }
+  }, [editor.view.state, editor.state.selection]);
+
+return (
+  <BubbleMenu
+    editor={editor}
+    tippyOptions={{ placement: "bottom-start" }}
+    shouldShow={({ editor }) => {
+      return isAutocompleteActive(editor.view.state);
+    }}
+  ></BubbleMenu>
+  ); 
+}
+
+````
+
+and the getInputBounds function:
+
+<small>helpers.ts</small>
+```ts
+export function getInputBounds(parentText: string, parentOffset: number) {
+  let start = parentOffset,
+    end = parentOffset;
+
+  while (parentText[start] != ":" && start > 0) {
+    start--;
+  }
+
+  while (parentText[end] != " " && end < parentText.length) {
+    end++;
+  }
+
+  return { start, end };
+}
+````
+
+With this, we can now apply filtering as soon as the input changes. And then,
+show off the filtered items in our menu. Note that in the example below I've
+created a simple filtering function. You are free to change this behaviour as you please.
+
+<small>autocomplete-bubble-menu.tsx</small>
+```tsx
+  const filteredItems = React.useMemo(() => {
+      const filtered = emojis
+        .filter((item) => {
+          return item.value.includes(input);
+        })
+        .splice(0, 5);
+      return filtered;
+  }, [input]);
+
+return (
+  <BubbleMenu
+    editor={editor}
+    tippyOptions={{ placement: "bottom-start" }}
+    shouldShow={({ editor }) => {
+      return isAutocompleteActive(editor.view.state);
+    }}
+  >
+    {show && <AutocompleteList items={filteredItems} onSelect={onSelect} />}
+  </BubbleMenu>
+);
+
+````
+
+I've also created a primitive autocomplete list component that handles all intuitive keyboard events:
+
+<small>autocomplete-list.tsx</small>
+```tsx
+export function AutocompleteList({ items, onSelect }: AutocompleteListProps) {
+  const [active, setActive] = React.useState(0);
+
+  const last = () => setActive(items.length - 1);
+
+  const first = () => setActive(0);
+
+  const next = (e: KeyboardEvent) => {
+    e.preventDefault();
+
+    if (e.metaKey) {
+      last();
+    } else {
+      setActive((p) => (p + 1 == items.length ? 0 : p + 1));
+    }
+  };
+
+  const prev = (e: KeyboardEvent) => {
+    e.preventDefault();
+
+    if (e.metaKey) {
+      first();
+    } else {
+      setActive((p) => (p - 1 < 0 ? items.length - 1 : p - 1));
+    }
+  };
+
+  React.useEffect(() => {
+    setActive((prev) => {
+      if (prev >= items.length) {
+        return 0;
+      }
+
+      return prev;
+    });
+  }, [items]);
+
+  React.useEffect(() => {
+    const listener = (e: KeyboardEvent) => {
+      switch (e.key) {
+        case "ArrowDown": {
+          next(e);
+          break;
+        }
+        case "ArrowUp": {
+          prev(e);
+          break;
+        }
+        case "Home": {
+          e.preventDefault();
+          first();
+          break;
+        }
+        case "End": {
+          e.preventDefault();
+          last();
+          break;
+        }
+        case "Enter": {
+          e.preventDefault();
+          onSelect(items.length ? items[active] : null);
+          break;
+        }
+      }
+    };
+    window.addEventListener("keydown", listener);
+
+    return () => {
+      window.removeEventListener("keydown", listener);
+    };
+  }, [items, active]);
+
+  if (!items.length) return null;
+
+  return (
+    <div
+      className="h-full w-full overflow-hidden bg-popover text-popover-foreground rounded-md"
+    >
+      <ul className="overflow-hidden p-1 text-foreground flex flex-col gap-1">
+        {items.map((item, i) => (
+          <li
+            role="button"
+            key={item.value}
+            className={cn(
+              "text-xs text-muted-foreground p-1 rounded-md hover:bg-accent w-full text-start relative",
+              { "bg-accent": active === i }
+            )}
+            onClick={() => {
+              onSelect(item);
+            }}
+          >
+            {item.label} :{item.value}:
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+````
+
+## Handling select
+
+In the code sample above, you can see that we already keep track of the current active item
+and the last thing remains for us is to implement the swapping of inputted text with the options value itself.
+
+When we want to modify prosemirror editor state, we use functions called **transactions**.
+
+Prosemirror already has some built in functions we can utilize to change the editor state. In our case,
+it will be smart to use _insertText()_ as we want to replace the current input bounds with the options value.
+
+With that in mind, we can now define a onSelect function:
+
+<small>autocomplete-bubble-menu.tsx</small>
+```tsx
+const onSelect = React.useCallback(
+  (item: AutocompleteItem | null) => {
+    if (!currentBounds || !item) return;
+    const { tr } = editor.view.state;
+
+    const transaction = tr.insertText(
+      item.label,
+      currentBounds.start,
+      currentBounds.end
+    );
+
+    editor.view.dispatch(transaction);
+  },
+  [editor.view.state, editor.state.selection, currentBounds]
+);
+```
+
+As we finished with the functionality itself, there is still one caveat.
+When we click 'Enter' to apply some option, editor's defaut event will apply a newline.
+To overwrite this behaviour, we can create a new extension and add a new Prosemirror plugin to it:
+
+<small>autocomplete/index.ts</small>
+```ts
+export const Autocomplete = Extension.create({
+  name: "autocomplete",
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey("eventHandler"),
+        props: {
+          handleKeyDown: (view, event) => {
+            if (event.key === "Enter" && !event.shiftKey)
+              return isAutocompleteActive(view.state);
+          },
+        },
+      }),
+    ];
+  },
+});
+```
+
+Basically, this plugin says that we want to prevent default behaviour when 'Enter' is clicked and an autocomplete is active.
+
+It's left for us to just append newly created extension to editor extension list.
+
+## Conclusion
+
+The entire code is [open-source](https://github.com/scape76/editor). You can also play with the editor [here](https://editor.scape76.com)
+
+I hope this tutorial was a bit of helpful for you and you grasped some basic understanding of creating tiptap extensions.
+Don't forget that you can apply your own logic and it's completely up to you.
+
+Happy coding!

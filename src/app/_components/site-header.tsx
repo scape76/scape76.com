@@ -5,16 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/icons";
 import { ModeToggle } from "@/components/mode-toggle";
 
-import Image from "next/image";
-import { ProfileImage } from "./profile-image";
-import { ThemeSelector } from "@/components/themes/theme-selector";
-
 export function SiteHeader() {
   return (
     <header className="w-full bg-background pt-4">
       <div className="container flex h-16 max-w-3xl items-center justify-between">
         <Link href="/" className="flex gap-2 items-center">
-          <ProfileImage />
           <div className="flex flex-col space-y-1 text-sm leading-none">
             <span className="text-lg font-bold">{siteConfig.name}</span>
             <span>{siteConfig.position}</span>
@@ -32,7 +27,6 @@ export function SiteHeader() {
               <span className="sr-only">GitHub</span>
             </Link>
           </Button>
-          <ThemeSelector />
           <ModeToggle />
         </nav>
       </div>
