@@ -6,6 +6,7 @@ import { getBlogPosts } from "@/db/blog";
 import { unstable_noStore as noStore } from "next/cache";
 import { Shell } from "@/components/shell";
 import { getBlogJsonLd } from "@/lib/utils";
+import { ToTopButton } from "./components/to-top-button";
 
 interface BlogPageProps {
   params: {
@@ -95,7 +96,7 @@ export default function Blog({ params }: BlogPageProps) {
   }
 
   return (
-    <Shell variant={"markdown"}>
+    <Shell variant={"markdown"} className="relative">
       <section>
         <h1 className="title font-medium text-2xl tracking-tighter max-w-[650px]">
           {post.metadata.title}
@@ -114,6 +115,7 @@ export default function Blog({ params }: BlogPageProps) {
           <CustomMDX source={post.content} />
         </article>
       </section>
+      <ToTopButton />
       <script
         type="application/ld+json"
         suppressHydrationWarning

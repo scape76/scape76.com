@@ -32,6 +32,9 @@ dependencies:
   date-fns:
     specifier: ^3.6.0
     version: 3.6.0
+  framer-motion:
+    specifier: ^11.3.2
+    version: 11.3.2(react-dom@18.3.1)(react@18.3.1)
   jotai:
     specifier: ^2.8.0
     version: 2.9.0(@types/react@18.3.3)(react@18.3.1)
@@ -59,6 +62,9 @@ dependencies:
   tailwindcss-animate:
     specifier: ^1.0.7
     version: 1.0.7(tailwindcss@3.4.4)
+  usehooks-ts:
+    specifier: ^3.1.0
+    version: 3.1.0(react@18.3.1)
   zod:
     specifier: ^3.23.5
     version: 3.23.8
@@ -2164,6 +2170,25 @@ packages:
       cross-spawn: 7.0.3
       signal-exit: 4.1.0
 
+  /framer-motion@11.3.2(react-dom@18.3.1)(react@18.3.1):
+    resolution: {integrity: sha512-RgjSzrNFZmedWcvmW4MMc84A7UcoY37jocadE3Mbg3o+UMofodfyeNnYD/HR15UhP22/bb5KOebNhYOj4mYkpQ==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0
+      react-dom: ^18.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+    dependencies:
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+      tslib: 2.6.3
+    dev: false
+
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
     dev: true
@@ -2805,6 +2830,10 @@ packages:
 
   /lodash.castarray@4.4.0:
     resolution: {integrity: sha512-aVx8ztPv7/2ULbArGJ2Y42bG1mEQ5mGjpdvrbJcJFU3TbYybe+QlLS4pst9zV52ymy2in1KpFPiZnAOATxD4+Q==}
+    dev: false
+
+  /lodash.debounce@4.0.8:
+    resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
     dev: false
 
   /lodash.isplainobject@4.0.6:
@@ -4394,6 +4423,16 @@ packages:
       detect-node-es: 1.1.0
       react: 18.3.1
       tslib: 2.6.3
+    dev: false
+
+  /usehooks-ts@3.1.0(react@18.3.1):
+    resolution: {integrity: sha512-bBIa7yUyPhE1BCc0GmR96VU/15l/9gP1Ch5mYdLcFBaFGQsdmXkvjV0TtOqW1yUd6VjIwDunm+flSciCQXujiw==}
+    engines: {node: '>=16.15.0'}
+    peerDependencies:
+      react: ^16.8.0  || ^17 || ^18
+    dependencies:
+      lodash.debounce: 4.0.8
+      react: 18.3.1
     dev: false
 
   /util-deprecate@1.0.2:
