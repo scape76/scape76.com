@@ -77,11 +77,17 @@ export default function RootLayout({
   return (
     <>
       <html lang="en" suppressHydrationWarning>
-        <head />
+        <head>
+          <script
+            defer
+            data-site-id="scape76.com"
+            src="https://assets.onedollarstats.com/tracker.js"
+          ></script>
+        </head>
         <body
           className={cn(
             "min-h-screen bg-background antialiased",
-            fontRubik.className
+            fontRubik.className,
           )}
         >
           <ThemeProvider
